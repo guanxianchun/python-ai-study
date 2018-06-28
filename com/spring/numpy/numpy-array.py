@@ -59,11 +59,12 @@ def array_reshape():
     
 def matrix_operator():
     array_data=np.array(np.random.random(12))
-    matrix_A = np.array([10,20,30,10])
+    matrix_A = np.array([10,20,30,10]).reshape(4,-1)
     print(array_data)
     matrix=array_data.reshape(3,-1)
     print(">>>将向量变成矩阵:")
     print(matrix)
+    print(matrix_A)
     print(">>>矩阵的乘:")
     print(matrix.dot(matrix_A))
     print(">>>矩阵的逆矩阵: ")
