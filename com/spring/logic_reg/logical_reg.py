@@ -106,6 +106,7 @@ def descent(data,theta,batchSize,stopType,thresh,alpha):
         if k>=len(data):
             k=0
             x,y = shuffleData(data)
+        #更新求解的参数值theta
         theta = theta -alpha*grad
         costs.append(cost(x,y,theta))
         i+=1
