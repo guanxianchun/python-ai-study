@@ -18,7 +18,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import time
-
+from sklearn import preprocessing as pp
 
 def read_data():
     pdData = pd.read_csv("LogiReg_data.txt",header=None,names=["Exam1","Exam2","Admitted"])
@@ -138,17 +138,46 @@ def runExpe(data,theta,batchSize,stopType,thresh,alpha):
     ax.set_title(name.upper()+" - Error vs. Iteration")
     return theta
 
+def scale_orig_data(data):
+    """
+    当每次迭代的数据浮动比较大时，我们通常要对数据进行标准化处理，将数据按其属性减去其均值，然后除以其方差
+    最后得到的结果是对每个属性／列来说所有数据都聚焦在0附近，方差为1
+    """
+    scale_data = data.copy()
+    #对第2到4列数据进行标准化处理
+    scale_data[:,1:3]=pp.scale(data[:,1:3])
+    return scale_data
+
+def unscale_runExpe(orig_data):
+    theta = np.zeros([1,3])
+    batchSize=16
+    #STOP_ITEM 迭代样本次数策略  n=100（每次迭代样本数）  thresh=5000(指定迭代次数)    alpha （学习率） 
+#     theta = runExpe(orig_data, theta, batchSize, STOP_ITEM, thresh=5000, alpha=0.000001)
+    #STOP_COST 迭代损失策略  不指定迭代数，指定二次预值之间的差距阀值thresh，当小于阀值时停止迭代 
+#     theta = runExpe(orig_data, theta, batchSize, STOP_COST, thresh=0.000001, alpha=0.001)
+    #STOP_GRAD 迭代梯度策略  指定梯度值阀值thresh＝0.05 当迭代的梯度值小于梯度阀值时停止迭代 
+    theta = runExpe(orig_data, theta, batchSize, STOP_GRAD, thresh=0.05, alpha=0.001)
+    print(theta)
+    plt.show()
+    
+def scale_runExpe(orig_data):
+    scale_data = scale_orig_data(orig_data)
+    theta = np.zeros([1,3])
+    batchSize=16
+    #STOP_ITEM 迭代样本次数策略  n=100（每次迭代样本数）  thresh=5000(指定迭代次数)    alpha （学习率） 
+#     theta = runExpe(orig_data, theta, batchSize, STOP_ITEM, thresh=5000, alpha=0.000001)
+    #STOP_COST 迭代损失策略  不指定迭代数，指定二次预值之间的差距阀值thresh，当小于阀值时停止迭代 
+#     theta = runExpe(orig_data, theta, batchSize, STOP_COST, thresh=0.000001, alpha=0.001)
+    #STOP_GRAD 迭代梯度策略  指定梯度值阀值thresh＝0.05 当迭代的梯度值小于梯度阀值时停止迭代 
+    theta = runExpe(scale_data, theta, batchSize, STOP_GRAD, thresh=0.05, alpha=0.001)
+    print(theta)
+    plt.show()
+    
 if __name__ == '__main__':
     data = read_data()
     data.insert(0, "Ones", 1)  #增加一列它的值为1  
     orig_data = data.get_values()
-    theta = np.zeros([1,3])
-    batchSize=100
-    #STOP_ITEM 迭代样本次数策略  n=100（每次迭代样本数）  thresh=5000(指定迭代次数)    alpha （学习率） 
-#     theta = runExpe(orig_data, theta, batchSize, STOP_ITEM, thresh=5000, alpha=0.000001)
-    #STOP_COST 迭代损失策略  不指定迭代数，指定二次预值之间的差距阀值thresh，当小于阀值时停止迭代 
-    theta = runExpe(orig_data, theta, batchSize, STOP_COST, thresh=0.000001, alpha=0.001)
-    #STOP_GRAD 迭代梯度策略  指定梯度值阀值thresh＝0.05 当迭代的梯度值小于梯度阀值时停止迭代 
-#     theta = runExpe(orig_data, theta, batchSize, STOP_GRAD, thresh=0.05, alpha=0.001)
-    print(theta)
-    plt.show()
+    #未对数据进行标准化处理的求解
+    unscale_runExpe(orig_data)
+    #对数据进行标准化处理的求解
+    scale_runExpe(orig_data)
