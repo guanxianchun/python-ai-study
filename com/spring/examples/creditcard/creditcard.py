@@ -38,8 +38,6 @@ def plot_confusion_matrix(conf_matrix, classes, title=u"混淆矩阵", cmap=plt.
         plt.text(j, i, conf_matrix[i, j],
                  horizontalalignment="center",
                  color="white" if conf_matrix[i, j] > thresh else "black")
-
-    plt.tight_layout()
     plt.ylabel('True label')
     plt.xlabel('Predicted label')
     plt.show()
