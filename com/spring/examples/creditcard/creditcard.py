@@ -11,6 +11,9 @@ from sklearn.preprocessing import StandardScaler
 import numpy as np
 from sklearn import linear_model, cross_validation
 from sklearn.metrics import recall_score, confusion_matrix, classification_report
+from sklearn.model_selection import train_test_split
+from imblearn.over_sampling import SMOTE
+
 import itertools
 def get_orign_data():
     data = pd.read_csv("creditcard.csv")
@@ -47,8 +50,8 @@ def down_sample_cross_validate(data):
                 然后将它们组合在一起.使二个样本数据同样少
     """
     # 得到样本数据和目标值
-    x = data.ix[:, data.columns != "Class"]
-    y = data.ix[:, data.columns == "Class"]
+    x = data.iloc[:, data.columns != "Class"]
+    y = data.iloc[:, data.columns == "Class"]
     # 得到欺诈的样本数据有多少
     number_records_fraud = len(data[data["Class"] == 1])
     fraud_indices = np.array(data[data["Class"] == 1].index)
@@ -59,19 +62,19 @@ def down_sample_cross_validate(data):
     under_sample_indices = np.concatenate([fraud_indices, random_normal_indices])
     # 得到下采样的数据集
     under_sample_data = data.iloc[under_sample_indices, :]
-    x_under_sample = under_sample_data.ix[:, under_sample_data.columns != "Class"]
-    y_under_sample = under_sample_data.ix[:, under_sample_data.columns == "Class"]
+    x_under_sample = under_sample_data.iloc[:, under_sample_data.columns != "Class"]
+    y_under_sample = under_sample_data.iloc[:, under_sample_data.columns == "Class"]
     x_train, x_test, y_train, y_test = cross_validate(x, y)
     x_train_under_sample, x_test_under_sample, y_train_under_sample, y_test_under_sample = cross_validate(x_under_sample, y_under_sample)
-    best_c_param = under_sample_kfold_scores(x_train_under_sample, y_train_under_sample)
+    best_c_param = sample_kfold_scores(x_train_under_sample, y_train_under_sample)
     train_predict(best_c_param, x_train_under_sample, y_train_under_sample, x_test_under_sample, y_test_under_sample)
     train_predict(best_c_param, x_train_under_sample, y_train_under_sample, x_test, y_test)
     # 用全部测试样本去训练,预测值
-    best_c_param = under_sample_kfold_scores(x_train, y_train)
+    best_c_param = sample_kfold_scores(x_train, y_train)
     train_predict(best_c_param, x_train, y_train, x_test, y_test)
 
     
-def train_predict(best_c_param, x_train, y_train, x_predict, y_test, threshold=0.5):
+def train_predict(best_c_param, x_train, y_train, x_predict, y_test, threshold=0.6):
     """
     通过训练样本得到模型,然后用预测样本预测,再计算recall的值
     @param best_c_param: 
@@ -92,7 +95,7 @@ def train_predict(best_c_param, x_train, y_train, x_predict, y_test, threshold=0
     print("Recall metric in the testing dataset: %s" % (conf_matrix[1, 1] * 1.0 / (conf_matrix[1, 0] + conf_matrix[1, 1])))
     plot_confusion_matrix(conf_matrix, classes=[0, 1])
     
-def under_sample_kfold_scores(x_train_data, y_train_data):
+def sample_kfold_scores(x_train_data, y_train_data):
     # 将训练数据分成多少等份,这里是分成5等份
     flod = cross_validation.KFold(len(y_train_data), 5, shuffle=False)
     # 设置惩罚力度
@@ -122,13 +125,28 @@ def under_sample_kfold_scores(x_train_data, y_train_data):
     print("*"*80)
     return best_c_param
 
-def up_sample_cross_validate(data):
+def over_sample_cross_validate(data):
     """
-    上采样:使二分类样本中,如果目标值为1的样本很少,目标值为0的样本很多,我们生成一些目标值为1的样本,使其与目标值为1一样多的样本
+        过采样:使二分类样本中,如果目标值为1的样本很少,目标值为0的样本很多,我们生成一些目标值为1的样本,使其与目标值为1一样多的样本
                 然后将它们组合在一起.使二个样本数据同样多
     """
-    pass
-
+    columns = data.columns
+    # 去掉最后一列(Class)
+    feature_columns = columns.delete(len(columns) - 1)
+    # 获取特征值和目标值
+    features = data[feature_columns]
+    labels = data["Class"]
+    
+    # 获取交叉训练和测试样本
+    feature_train, feature_test, label_train, label_test = train_test_split(features, labels, test_size=0.2, random_state=0)
+    # 得到过采样的训练样本
+    oversampler = SMOTE(random_state=0)
+    over_sample_features, over_sample_labels = oversampler.fit_sample(feature_train, label_train)
+    over_features = pd.DataFrame(over_sample_features)
+    over_labels = pd.DataFrame(over_sample_labels)
+    best_c_param = sample_kfold_scores(over_features, over_labels)
+    train_predict(best_c_param, over_features, over_labels, feature_test, label_test, 0.5)
+    
 def standar_scaler(data):
     """
         标准化数据，保证每个维度的特征数据方差为1，均值为0。使得预测结果不会被某些维度过大的特征值而主导。
@@ -152,5 +170,6 @@ if __name__ == '__main__':
 #     view_orign_data(orign_data)
     data = standar_scaler(orign_data)
     down_sample_cross_validate(data)
-    up_sample_cross_validate(data)
+    print("-------------------------过采样------------------------")
+    over_sample_cross_validate(orign_data)
     
