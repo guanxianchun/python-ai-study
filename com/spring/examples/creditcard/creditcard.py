@@ -161,7 +161,7 @@ def over_sample_cross_validate(data):
     over_features = pd.DataFrame(over_sample_features)
     over_labels = pd.DataFrame(over_sample_labels)
     best_c_param = sample_kfold_scores(over_features, over_labels)
-    train_predict(best_c_param, over_features, over_labels, feature_test, label_test, 0.5)
+    train_predict(best_c_param, over_features, over_labels, feature_test, label_test, 0.7)
     
 def standar_scaler(data):
     """
@@ -188,4 +188,5 @@ if __name__ == '__main__':
 #     down_sample_cross_validate(data)
     print("-------------------------过采样------------------------")
     over_sample_cross_validate(orign_data)
+    
     
