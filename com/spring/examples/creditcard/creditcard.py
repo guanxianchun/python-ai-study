@@ -108,7 +108,7 @@ def train_predict(best_c_param, x_train, y_train, x_predict, y_test, threshold=0
     print("精度 P : %s" % (pression))
     print("F1 Score (2*P*R/(P+R) : %s" % (2 * pression * recall_rate / (pression + recall_rate)))
     print("转移性: 负例判断为负例占总的负例样本的比重, 公式: TN/(TN+FP)")
-    print("转移性S: %s" % (conf_matrix[0, 1] * 1. / (conf_matrix[0, 0] + conf_matrix[0, 1])))
+    print("转移性S: %s" % (conf_matrix[0, 0] * 1. / (conf_matrix[0, 0] + conf_matrix[0, 1])))
     plot_confusion_matrix(conf_matrix, classes=[0, 1])
     
 def sample_kfold_scores(x_train_data, y_train_data):
@@ -185,7 +185,7 @@ if __name__ == '__main__':
     # 查看样本数据(0表示正常的数据,1:异常的数据)
 #     view_orign_data(orign_data)
     data = standar_scaler(orign_data)
-#     down_sample_cross_validate(data)
+    down_sample_cross_validate(data)
     print("-------------------------过采样------------------------")
     over_sample_cross_validate(orign_data)
     
