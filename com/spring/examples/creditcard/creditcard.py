@@ -92,7 +92,23 @@ def train_predict(best_c_param, x_train, y_train, x_predict, y_test, threshold=0
         y_pred = lr.predict_proba(x_predict)
         y_pred = y_pred[:, 1] > threshold
     conf_matrix = confusion_matrix(y_test, y_pred)
-    print("Recall metric in the testing dataset: %s" % (conf_matrix[1, 1] * 1.0 / (conf_matrix[1, 0] + conf_matrix[1, 1])))
+    # 计算recall值 = TP/(TP+FN)
+    # 真实值
+    #    |
+    #  0 |  TN(负类->负类)    FP(负类->正类)
+    #    |
+    #  1 |  FN(正类->负类)    TP(正类->正类)
+    #    |________________________________________
+    #            0                 1           预测值
+    print("召回率:反映被正确判断为正例占总的正例的比重,公式: TP/(TP+FN)")
+    recall_rate = conf_matrix[1, 1] * 1. / (conf_matrix[1, 1] + conf_matrix[1, 0])
+    print("测试样本中召回率 R : %s" % (recall_rate))
+    print("精度: 反映被分类器判定的正例中,真正的正例所占比重,公式: TP/(TP+FP)")
+    pression = conf_matrix[1, 1] * 1. / (conf_matrix[1, 1] + conf_matrix[0, 1])
+    print("精度 P : %s" % (pression))
+    print("F1 Score (2*P*R/(P+R) : %s" % (2 * pression * recall_rate / (pression + recall_rate)))
+    print("转移性: 负例判断为负例占总的负例样本的比重, 公式: TN/(TN+FP)")
+    print("转移性S: %s" % (conf_matrix[0, 1] * 1. / (conf_matrix[0, 0] + conf_matrix[0, 1])))
     plot_confusion_matrix(conf_matrix, classes=[0, 1])
     
 def sample_kfold_scores(x_train_data, y_train_data):
@@ -113,7 +129,7 @@ def sample_kfold_scores(x_train_data, y_train_data):
             recall_acc = recall_score(y_train_data.iloc[indices[1], :], y_pred_under_sample)
             recall_accs.append(recall_acc)
             print("Iteration  %s : recall score = %s" % (iter, recall_acc))
-        result_table.ix[j, "Mean recall score"] = np.mean(recall_accs)
+        result_table.loc[j, "Mean recall score"] = np.mean(recall_accs)
         j += 1
         print("Mean recall score : %s" % (np.mean(recall_accs)))
     
@@ -169,7 +185,7 @@ if __name__ == '__main__':
     # 查看样本数据(0表示正常的数据,1:异常的数据)
 #     view_orign_data(orign_data)
     data = standar_scaler(orign_data)
-    down_sample_cross_validate(data)
+#     down_sample_cross_validate(data)
     print("-------------------------过采样------------------------")
     over_sample_cross_validate(orign_data)
     
