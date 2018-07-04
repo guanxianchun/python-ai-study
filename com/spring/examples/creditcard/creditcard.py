@@ -100,6 +100,9 @@ def train_predict(best_c_param, x_train, y_train, x_predict, y_test, threshold=0
     #  1 |  FN(正类->负类)    TP(正类->正类)
     #    |________________________________________
     #            0                 1           预测值
+    print("*"*80)
+    print("Best model to choose from cross validation is with C parameter = %s and threshold :%s " % (best_c_param, threshold))
+    print("*"*80)
     print("召回率:反映被正确判断为正例占总的正例的比重,公式: TP/(TP+FN)")
     recall_rate = conf_matrix[1, 1] * 1. / (conf_matrix[1, 1] + conf_matrix[1, 0])
     print("测试样本中召回率 R : %s" % (recall_rate))
@@ -136,9 +139,6 @@ def sample_kfold_scores(x_train_data, y_train_data):
     best_c_param = result_table.loc[result_table["Mean recall score"].idxmax()]["C_Params"]
     print("*"*80)
     print(result_table)
-    print("*"*80)
-    print("Best model to choose from cross validation is with C parameter = %s" % (best_c_param))
-    print("*"*80)
     return best_c_param
 
 def over_sample_cross_validate(data):
@@ -161,7 +161,7 @@ def over_sample_cross_validate(data):
     over_features = pd.DataFrame(over_sample_features)
     over_labels = pd.DataFrame(over_sample_labels)
     best_c_param = sample_kfold_scores(over_features, over_labels)
-    train_predict(best_c_param, over_features, over_labels, feature_test, label_test, 0.7)
+    train_predict(best_c_param, over_features, over_labels, feature_test, label_test, 0.75)
     
 def standar_scaler(data):
     """
