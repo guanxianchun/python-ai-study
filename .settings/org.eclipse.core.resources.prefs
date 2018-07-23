@@ -1,5 +1,6 @@
 eclipse.preferences.version=1
 encoding//com/spring/examples/creditcard/creditcard.py=utf-8
+encoding//com/spring/knn/knn.py=utf-8
 encoding//com/spring/linear_regression/bank_load.py=utf8
 encoding//com/spring/logic_reg/logical_reg.py=utf8
 encoding//com/spring/matplotlib/matplotlib_demo.py=utf8
