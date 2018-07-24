@@ -69,12 +69,57 @@ def classify_0(in_x, train_datas, labels, k):
     # 对分类值进行降序排序
     sorted_class_count = sorted(class_count.iteritems(), key=operator.itemgetter(1), reverse=True)
     # 取最大值的分类标签
-    return label_dating_map[sorted_class_count[0][0]]
+    return sorted_class_count[0][0]
 
+def dating_class_test(test_data, labels):
+    norm_matrix, rangs, min_value = autoNorm(test_data)
+    ho_ration = 0.1
+    m = norm_matrix.shape[0]
+    num_test_vects = int(m * ho_ration)
+    error_count = 0.0
+    print "*******************************输出预测错误的样本及预测信息***********************************************"
+    for i in range(num_test_vects):
+        # 预测norm_matrix前num_test_vects个样本的结果，用norm_matrix的num_test_vects到m的样本做训练样本 
+        classify_result = classify_0(norm_matrix[i, :], norm_matrix[num_test_vects:m, :], labels[num_test_vects:m], 10)
+        if classify_result != labels[i] :print norm_matrix[i, :], "预测分类结果: %s  真实结果: %s" % (label_dating_map[classify_result], label_dating_map[labels[i]])
+        if classify_result != labels[i]:error_count += 1.0
+    print "结果预测错误占比 : %.2f%s" % (error_count * 100 / float(num_test_vects), '%')
+
+def image_to_vector(file_name):
+    return_value = np.zeros((1, 1024))
+    with open(file_name) as f:
+        for i in range(32):
+            line = f.readline()
+            for j in range(32):
+                return_value[0, 32 * i + j] = int(line[j])
+    return return_value
+
+def get_digits_data(directory):
+    import os
+    train_files = os.listdir(directory)
+    m_size = len(train_files)
+    data_matrix = np.zeros((m_size, 1024))
+    labels = []
+    for i in range(m_size):
+        file_name = train_files[i]
+        labels.append(int(file_name.split("_")[0]))
+        data_matrix[i, :] = image_to_vector(directory + "/" + file_name)
+    return data_matrix, labels
+
+def test_digits(train_data, train_labels, test_data, test_labels):
+    error_count = 1.0
+    m_size = test_data.shape[0]
+    print "**********************输出错误的手写数字预测信息*****************************"
+    for i in range(m_size):
+        classify_result = classify_0(test_data[i, :], train_data, train_labels, 3)
+        if classify_result != test_labels[i]: error_count += 1.0
+        if classify_result != test_labels[i] :print "预测分类结果: %s  真实结果: %s" % (classify_result, test_labels[i])
+    print "结果预测错误占比 : %.2f%s" % (error_count * 100 / float(m_size), '%')
+    
 if __name__ == '__main__':
     train_data, labels = get_dating_data()  # init_datas()
     raw_data = [500, 8.9, 1.5]
-    show_picture(train_data[:, 0], train_data[:, 1], labels)
+#     show_picture(train_data[:, 0], train_data[:, 1], labels)
 #     show_picture(train_data[:, 0], train_data[:, 2], labels)
 #     show_picture(train_data[:, 1], train_data[:, 2], labels)
     print 'classify: ', classify_0(raw_data, train_data, labels, 500)
@@ -84,3 +129,9 @@ if __name__ == '__main__':
     # 对输入数据进行归一化处理
     normal_data = (np.array(raw_data) - min_value) / rangs
     print 'classify: ', classify_0(normal_data, new_data, labels, 500)
+    dating_class_test(train_data, labels)
+    
+    train_data , train_labels = get_digits_data("digits/trainingDigits")
+    test_data , test_labels = get_digits_data("digits/testDigits")
+    test_digits(train_data, train_labels, test_data, test_labels)
+    
