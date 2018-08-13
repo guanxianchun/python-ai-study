@@ -113,6 +113,27 @@ class NaiveBayes(object):
             doc_list.append(words)
             full_text.extend(words)
             class_list.append(class_value)
+            
+    def calc_most_freq(self, vocabulary, full_text):
+        """
+                返回使用频率最高的前10个词
+        """
+        import operator
+        freqDict = {}
+        for token in vocabulary:
+            freqDict[token] = full_text.count(token)
+        sortedFreq = sorted(freqDict.iteritems(), key=operator.itemgetter(1), reverse=True) 
+        return sortedFreq[:10] 
+          
+    def delete_most_freq(self, vocabulary, full_text):
+        """
+                从词汇表中删除使用频率最高的词
+        @param vocabulary: 
+        @param full_text: 
+        """
+        word_top10 = self.calc_most_freq(vocabulary, full_text)
+        for pairW in word_top10:
+            if pairW[0] in vocabulary: vocabulary.remove(pairW[0])
     def testing_naive_bayes_from_file(self):
         doc_list = []
         class_list = []
@@ -121,6 +142,7 @@ class NaiveBayes(object):
             self.set_date_from_file('email_spam/%d.txt' % (i), 1, doc_list, full_text, class_list)
             self.set_date_from_file('email_ham/%d.txt' % (i), 0, doc_list, full_text, class_list)
         vocabulary = self.create_vocabulary(doc_list)
+#         self.delete_most_freq(vocabulary, full_text)
         # 贝叶斯交叉验证,取40个做训练集，10个做测试数据
         train_indexs = range(50)
         test_indexs = []
@@ -140,7 +162,9 @@ class NaiveBayes(object):
             if self.classify_naive_bayes(np.array(words), p0_vector, p1_vector, p_spam) != class_list[doc_index]:
                 error_count += 1
                 print 'classification error :', doc_list[doc_index]
+        print vocabulary, p0_vector, p1_vector, p_spam
         print 'The error rate is :', float(error_count) / len(test_indexs)
+        return vocabulary, p0_vector, p1_vector, p_spam
 if __name__ == '__main__':
     naive_bayes = NaiveBayes()
     naive_bayes.testing_naive_bayes()
