@@ -9,6 +9,7 @@ P(C1|X)=P(X|C1)*P(C1)/P(X)
 logP(C1|X)=logP(X|C1)*P(C1)/P(X) =logP(X|C1)+logP(C1) -logP(X)
 因为logP(X)是固定的，
 所以只要比较logP(X|C1)+logP(C1)的大小即可
+
 @author: guan.xianchun
 '''
 import numpy as np
@@ -162,10 +163,26 @@ class NaiveBayes(object):
             if self.classify_naive_bayes(np.array(words), p0_vector, p1_vector, p_spam) != class_list[doc_index]:
                 error_count += 1
                 print 'classification error :', doc_list[doc_index]
-        print vocabulary, p0_vector, p1_vector, p_spam
+#         print vocabulary, p0_vector, p1_vector, p_spam
         print 'The error rate is :', float(error_count) / len(test_indexs)
         return vocabulary, p0_vector, p1_vector, p_spam
+    
+    def print_top_words(self, vocabulary, p0_verctor, p1_vector):
+        top_ny = []
+        top_stop_frequency = []
+        for i in range(len(p0_verctor)):
+            if p0_verctor[i] > -6.0:top_stop_frequency.append((vocabulary[i], p0_verctor[i]))
+            if p1_vector[i] > -6.0:top_ny.append((vocabulary[i], p1_vector[i]))
+        sorted_sf = sorted(top_stop_frequency, key=lambda x :x[1], reverse=True)
+        print '**停用词**' * 60
+        for item in sorted_sf:
+            print item[0] 
+        sorted_ny = sorted(top_ny, key=lambda x :x[1], reverse=True)
+        print '**NY**' * 60
+        for item in sorted_ny:
+            print item[0]
 if __name__ == '__main__':
     naive_bayes = NaiveBayes()
     naive_bayes.testing_naive_bayes()
-    naive_bayes.testing_naive_bayes_from_file()
+    vocabulary, p0_vector, p1_vector, p_spam = naive_bayes.testing_naive_bayes_from_file()
+    naive_bayes.print_top_words(vocabulary, p0_vector, p1_vector)
